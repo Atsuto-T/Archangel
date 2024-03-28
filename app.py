@@ -16,7 +16,7 @@ def capture_camera():
 
     log = []
     #Open webcam to capture images
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(0,cv2.CAP_DSHOW)
     while cap.isOpened():
         ret, frame = cap.read()
         # Make detections using the model
@@ -44,10 +44,11 @@ def capture_camera():
     #Show the log of your pet.
     #combined_data = np.array([[event, time] for event, times in log.items() for time in times])
     log = np.array(log)
+    return log
+
+def show_figure(log):
     fig = px.scatter(x=log[:,1],y=log[:,0])
     fig.show()
-
-    return log, fig
 
 #webrtc_streamer(key='sample')
 # col1, col2 = st.columns([2.8,0.3,3])
@@ -57,3 +58,10 @@ def capture_camera():
 #     #Camera Image
 #     with st.form("image_input"):
 #         captured_image =
+camera_load_state = st.text('Preparing camera...')
+camera_output = capture_camera()
+
+if st.checkbox('Show the log'):
+    st.subheader('Here is the log of today.')
+    figure = show_figure(camera_output)
+    st.write(figure)
