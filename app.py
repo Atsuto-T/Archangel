@@ -5,6 +5,7 @@ import cv2
 from matplotlib import pyplot as plt
 import uuid
 import os
+import queue
 import datetime
 import streamlit as st
 from streamlit_webrtc import webrtc_streamer
@@ -58,10 +59,36 @@ def show_figure(log):
 #     #Camera Image
 #     with st.form("image_input"):
 #         captured_image =
-camera_load_state = st.text('Preparing camera...')
-camera_output = capture_camera()
+result_queue: "queue.Queue[List[Detection]]" = queue.Queue() #type:ignore
+second_queue: "queue.Queue[List[Detection]]" = queue.Queue() #type:ignore
 
-if st.checkbox('Show the log'):
-    st.subheader('Here is the log of today.')
-    figure = show_figure(camera_output)
-    st.write(figure)
+camera_load_state = st.text('Preparing camera...')
+ctx = webrtc_streamer(key='example',
+                      video_frame_callback=capture_camera,
+                      rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
+                      media_stream_constraints={"video": True, "audio": False},
+                      async_processing=True)
+
+if ctx.state.playing:
+        frame_count = 0
+        frame_counter_placeholder = st.empty()
+        frame_counter_placeholder.text("Recording... 0%")
+
+        result = ""
+        prediction_placeholder = st.empty()
+
+        while True:
+            frame_count = (second_queue.get() + 1) * 100 / 20
+            frame_counter_placeholder.text(f"📽️ Recording... {frame_count: .0f}%")
+
+            if frame_count == 100:
+                frame_counter_placeholder.text("🛠️ AI at work... 🦾")
+                result += result_queue.get() + " -> "
+                prediction_placeholder.markdown(f"<h1>{result}</h1>", unsafe_allow_html=True)
+
+
+
+# if st.checkbox('Show the log'):
+#     st.subheader('Here is the log of today.')
+#     figure = show_figure(camera_output)
+#     st.write(figure)
