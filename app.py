@@ -1,16 +1,9 @@
 import torch
-import torchvision
 import numpy as np
 import cv2
-from matplotlib import pyplot as plt
-import uuid
-import os
-import queue
 import datetime
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer, WebRtcMode
 import plotly.express as px
-import av
 
 @st.cache_resource
 def load_model():
@@ -25,6 +18,7 @@ log = []
 #Basic structure of the webpage
 st.title("Archangel")
 frame_placeholder = st.empty()
+log_placeholder = st.empty()
 
 #Add "Stop" button and store its state in a variable
 stop_button_pressed = st.button("Stop")
@@ -66,7 +60,9 @@ cv2.destroyAllWindows()
 
 #Showing the log as a graph after the webcam is closed
 log_array = np.array(st.session_state.log)
-fig = px.scatter(x=log_array[:,1],y=log_array[:,0])
-fig.show()
+fig = px.scatter(x=log_array[:,1],y=log_array[:,0],
+                 labels={"x":"Time","y":"Action"},title="Activity Log")
+log_placeholder.plotly_chart(figure_or_data=fig,use_container_width=False,
+                             sharing="streamlit",theme="streamlit")
 
 #if __name__ = '__main__':
