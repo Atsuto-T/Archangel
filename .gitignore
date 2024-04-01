@@ -1,3 +1,9 @@
 raw_data
+log_storage
 .python-version
 __pycache__/
+labelImg/
+yolov3.weights
+yolov3.cfg
+yolov5/
+yolov5s.pt
