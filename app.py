@@ -4,6 +4,7 @@ import cv2
 import datetime
 import streamlit as st
 import plotly.express as px
+import plotly.graph_objects as go
 import time
 import pandas as pd
 
@@ -15,24 +16,23 @@ def load_model():
     model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5/runs/train/exp5/weights/last.pt', force_reload=True)
     return model
 
-def store_log(log):
+def store_log(log,date):
     '''This function stores the activity logs to your local storage.'''
     df = pd.DataFrame(log,columns=['Action','Time'])
     df_title = log[0][1]
     try:
-        df.to_csv(f'log_storage/{df_title}.csv')
+        df.to_csv(f'log_storage/{date}-{df_title}.csv')
         st.write("Successfully stored the log!")
-        time.sleep(3)
-
+        time.sleep(10)
     except OSError:
         st.write("The directory does not exist. Failed to store the log.")
-        time.sleep(3)
+        time.sleep(10)
     st.session_state.log = None
 
 def reset_page():
-    st.session_state.log = None
     with st.spinner("Rerunning the app..."):
         time.sleep(3)
+    st.session_state.clear()
     st.rerun()
 
 def main():
@@ -41,9 +41,12 @@ def main():
     log = []
 
     #Basic structure of the webpage
-    st.title("Archangel")
+    st.markdown("""
+    <h1 style="font-size: 80px; color: #E9FBFF; text-align: center; font-family:
+    times new roman">Archangel</h1>""", unsafe_allow_html=True)
     frame_placeholder = st.empty()
     log_placeholder = st.empty()
+    col1,col2 = st.columns(2)
 
     #Add "Stop" button and store its state in a variable
     stop_button_pressed = st.button("Stop")
@@ -61,7 +64,10 @@ def main():
         predictions = results.pred[0]
         detected_labels = predictions[:,-1].cpu().numpy() #list of numbers
         current_time = datetime.datetime.now()
+        date = current_time.strftime("%m.%d.%Y")
         hour_minute = current_time.strftime("%H:%M:%S")
+        #Passing date infromation to session_state
+        st.session_state.date = date
 
         #Taking logs of events
         class_names = results.names #dictionary
@@ -70,7 +76,6 @@ def main():
             for word in detected_class_names:
                 log.append([word,hour_minute])
                 #Storing log as session state
-                #if 'log' not in st.session_state:
                 st.session_state.log = log
 
         #Displaying the webcam on the webpage
@@ -95,14 +100,17 @@ def main():
 
         fig = px.scatter(x=log_array[:,1],y=log_array[:,0],
                         labels={"x":"Time","y":"Action"},title="Activity Log")
+        fig.update_layout(xaxis = go.layout.XAxis(tickangle = 45))
         log_placeholder.plotly_chart(figure_or_data=fig,use_container_width=False,
                                     sharing="streamlit",theme="streamlit")
 
         #Show button for storing the log
-        st.button("Store Log",on_click=store_log(log=log_array))
+        with col1:
+            st.button("Store Log",on_click=store_log(log=log_array,date=st.session_state.date))
 
-    #Later, create a button that refreshes the page
-    st.button("Reset",on_click=reset_page)
+    #Show refresh button
+    with col2:
+        st.button("Reset",on_click=reset_page)
 
 if __name__ == '__main__':
     main()
