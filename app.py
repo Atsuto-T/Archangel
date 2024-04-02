@@ -18,33 +18,26 @@ def load_model():
 
 def store_log(log,date):
     '''This function stores the activity logs to your local storage.'''
-    if 'log' not in st.session_state or st.session_state.log == None:
-        st.write("Failed to store logs")
-    else:
-        df = pd.DataFrame(log,columns=['Action','Time'])
-        df_title = log[0][1]
-        try:
-            df.to_csv(f'log_storage/{date}-{df_title}.csv')
-            st.write("Successfully stored the log!")
-            time.sleep(2)
-        except OSError:
-            st.write("The directory does not exist. Failed to store the log.")
-            time.sleep(2)
-        st.session_state.log = None
-
-
-def empty_log():
-    '''This function tells the users that the log is empty'''
-    st.write("There is no log to store...")
+    df = pd.DataFrame(log,columns=['Action','Time'])
+    df_title = log[0][1]
+    try:
+        df.to_csv(f'log_storage/{date}-{df_title}.csv')
+        st.markdown("""
+    <h1 style="font-size: 30px; color: #E9FBFF; text-align: center; font-family:
+    times new roman">Successfully stored the log🙌</h1>""", unsafe_allow_html=True)
+        time.sleep(2)
+    except OSError:
+        st.write("The directory does not exist. Failed to store the log..")
+        time.sleep(2)
+    st.session_state.log = None
 
 def reset_page():
-    st.write("Reset function activated")
-    time.sleep(2)
-
-    with st.spinner("Rerunning the app..."):
+    with st.spinner("Cleaning cached data..."):
         time.sleep(3)
     st.session_state.clear()
-    st.rerun()
+    st.markdown("""
+    <h1 style="font-size: 15px; color: #E9FBFF; text-align: center; font-family:
+    times new roman">The data is cleared. Please return to Start◀️</h1>""", unsafe_allow_html=True)
 
 def main():
     cap = cv2.VideoCapture(0)
@@ -52,14 +45,21 @@ def main():
     log = []
 
     #Basic structure of the webpage
-    st.markdown("""
-    <h1 style="font-size: 80px; color: #E9FBFF; text-align: center; font-family:
-    times new roman">Archangel</h1>""", unsafe_allow_html=True)
     frame_placeholder = st.empty()
     log_placeholder = st.empty()
+    col1,col2,col3,col4,col5 = st.columns(5)
 
     #Add "Stop" button and store its state in a variable
-    stop_button_pressed = st.button("Stop",key='stop')
+    with col1:
+        pass
+    with col2:
+        pass
+    with col4:
+        pass
+    with col5:
+        pass
+    with col3:
+        stop_button_pressed = st.button("Stop",key='stop')
 
     #Livestream webcam using OpenCV
     while cap.isOpened() and not stop_button_pressed:
@@ -103,29 +103,40 @@ def main():
     #Showing the log as a graph after the webcam is closed
 
     if 'log' not in st.session_state or st.session_state.log == None:
-        st.write("No specific action detected... Please rerun the page.")
+        st.write("No specific action detected... Please press Start again◀️")
 
     else:
         log_array = np.array(st.session_state.log)
-
-        print(log_array)
-
         fig = px.scatter(x=log_array[:,1],y=log_array[:,0],
                         labels={"x":"Time","y":"Action"},title="Activity Log")
         fig.update_layout(xaxis = go.layout.XAxis(tickangle = 45))
         log_placeholder.plotly_chart(figure_or_data=fig,use_container_width=False,
                                     sharing="streamlit",theme="streamlit")
 
-        st.session_state.option = st.selectbox("What would you like to do with this data?",
-                          ("Store Log", "Reset"),index=None,
-                          placeholder="Please select..")
-
-if __name__ == '__main__':
-    main()
-    st.write("Please press 'Q'")
-    if st.session_state.option == "Store Log":
-        store_log(log=np.array(st.session_state.log),date=st.session_state.date)
-    elif st.session_state.option == "Reset":
+def side_bar():
+    '''Side bar for user commands'''
+    st.sidebar.title('User Command')
+    commands = ['Start','Store Log','Reset Page','Analyse Behavior']
+    choice = st.sidebar.selectbox("What would you like?",commands,
+                                  label_visibility='collapsed')
+    if choice == 'Start':
+        main()
+    elif choice == 'Store Log':
+        if 'log' not in st.session_state or st.session_state.log == None:
+            st.write("No log to store. Please go back to Start🔼")
+        else:
+            store_log(log=np.array(st.session_state.log),date=st.session_state.date)
+    elif choice == 'Reset Page':
         reset_page()
 
-    st.write("Session End")
+#########################Main Structure#################################
+
+st.markdown("""
+    <h1 style="font-size: 80px; color: #E9FBFF; text-align: center; font-family:
+    times new roman">Archangel</h1>""", unsafe_allow_html=True)
+st.markdown("""
+    <h1 style="font-size: 35px; color: #E9FBFF; text-align: center; font-family:
+    times new roman">◀️◀️◀️Please Open the Sidebar.</h1>""", unsafe_allow_html=True)
+
+if __name__ == '__main__':
+    side_bar()
