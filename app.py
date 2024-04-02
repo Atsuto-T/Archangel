@@ -18,18 +18,29 @@ def load_model():
 
 def store_log(log,date):
     '''This function stores the activity logs to your local storage.'''
-    df = pd.DataFrame(log,columns=['Action','Time'])
-    df_title = log[0][1]
-    try:
-        df.to_csv(f'log_storage/{date}-{df_title}.csv')
-        st.write("Successfully stored the log!")
-        time.sleep(10)
-    except OSError:
-        st.write("The directory does not exist. Failed to store the log.")
-        time.sleep(10)
-    st.session_state.log = None
+    if 'log' not in st.session_state or st.session_state.log == None:
+        st.write("Failed to store logs")
+    else:
+        df = pd.DataFrame(log,columns=['Action','Time'])
+        df_title = log[0][1]
+        try:
+            df.to_csv(f'log_storage/{date}-{df_title}.csv')
+            st.write("Successfully stored the log!")
+            time.sleep(2)
+        except OSError:
+            st.write("The directory does not exist. Failed to store the log.")
+            time.sleep(2)
+        st.session_state.log = None
+
+
+def empty_log():
+    '''This function tells the users that the log is empty'''
+    st.write("There is no log to store...")
 
 def reset_page():
+    st.write("Reset function activated")
+    time.sleep(2)
+
     with st.spinner("Rerunning the app..."):
         time.sleep(3)
     st.session_state.clear()
@@ -46,10 +57,9 @@ def main():
     times new roman">Archangel</h1>""", unsafe_allow_html=True)
     frame_placeholder = st.empty()
     log_placeholder = st.empty()
-    col1,col2 = st.columns(2)
 
     #Add "Stop" button and store its state in a variable
-    stop_button_pressed = st.button("Stop")
+    stop_button_pressed = st.button("Stop",key='stop')
 
     #Livestream webcam using OpenCV
     while cap.isOpened() and not stop_button_pressed:
@@ -91,8 +101,10 @@ def main():
     cv2.destroyAllWindows()
 
     #Showing the log as a graph after the webcam is closed
+
     if 'log' not in st.session_state or st.session_state.log == None:
-        st.write("No specific action detected...")
+        st.write("No specific action detected... Please rerun the page.")
+
     else:
         log_array = np.array(st.session_state.log)
 
@@ -104,13 +116,16 @@ def main():
         log_placeholder.plotly_chart(figure_or_data=fig,use_container_width=False,
                                     sharing="streamlit",theme="streamlit")
 
-        #Show button for storing the log
-        with col1:
-            st.button("Store Log",on_click=store_log(log=log_array,date=st.session_state.date))
-
-    #Show refresh button
-    with col2:
-        st.button("Reset",on_click=reset_page)
+        st.session_state.option = st.selectbox("What would you like to do with this data?",
+                          ("Store Log", "Reset"),index=None,
+                          placeholder="Please select..")
 
 if __name__ == '__main__':
     main()
+    st.write("Please press 'Q'")
+    if st.session_state.option == "Store Log":
+        store_log(log=np.array(st.session_state.log),date=st.session_state.date)
+    elif st.session_state.option == "Reset":
+        reset_page()
+
+    st.write("Session End")
