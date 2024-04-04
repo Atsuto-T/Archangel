@@ -13,7 +13,7 @@ def load_model():
     with st.spinner('Processing...'):
         time.sleep(3)
         #Load fine-tuned YOLO detection model
-    model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5/runs/train/exp5/weights/last.pt', force_reload=True)
+    model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5/runs/train/exp8/weights/last.pt', force_reload=True)
     return model
 
 def store_log(log,date):
@@ -40,6 +40,29 @@ def reset_page():
     times new roman">The data is cleared. Please return to Start◀️</h1>""", unsafe_allow_html=True)
 
 def main():
+    page_bg_img = """
+    <style>
+    body {
+    background-image: url("https://unsplash.com/photos/monument-with-statuettes-on-top-building-at-daytime-kaEhf0eZme8");
+    background-size: cover;
+    }
+    </style>
+    """
+
+# <style>
+# [data-testid="stAppViewContainer"] > .main {{
+# background-image: url("main_background.jpg");
+# background-size: cover;
+# background-position: center center;
+# background-repeat: no-repeat;
+# background-attachment: local;
+# }}
+# [data-testid="stHeader"] {{
+# background: rgba(0,0,0,0);
+# }}
+# </style>
+
+    st.markdown(page_bg_img, unsafe_allow_html=True)
     cap = cv2.VideoCapture(0)
     model = load_model()
     log = []
@@ -137,6 +160,9 @@ st.markdown("""
 st.markdown("""
     <h1 style="font-size: 35px; color: #E9FBFF; text-align: center; font-family:
     times new roman">◀️◀️◀️Please Open the Sidebar.</h1>""", unsafe_allow_html=True)
+
+
+
 
 if __name__ == '__main__':
     side_bar()
