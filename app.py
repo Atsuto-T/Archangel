@@ -101,10 +101,10 @@ def main():
 
     #WebRTC streamling setup
     webrtc_streamer(key='example',
-                    video_frame_callback=video_frame_callback)
-                            # rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
-                            # media_stream_constraints={"video": True, "audio": False},
-                            # async_processing=True)
+                    video_frame_callback=video_frame_callback,
+                    rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
+                    media_stream_constraints={"video": True, "audio": False},
+                    async_processing=True)
 
     #stream = cv2.cvtColor(results_array,cv2.COLOR_BGR2RGB)
     #frame_placeholder.image(ctx,channels="RGB")
