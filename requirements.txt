@@ -1,6 +1,8 @@
 #For app.py
 torch
-cv2
+opencv-contrib-python
+opencv-python
 streamlit
+streamlit-webrtc
 plotly
 mediapipe
