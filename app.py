@@ -100,14 +100,14 @@ def main():
         stop_button_pressed = st.button("Stop",key='stop')
 
     #WebRTC streamling setup
-    ctx = webrtc_streamer(key='example',
-                            video_frame_callback=video_frame_callback,
-                            rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
-                            media_stream_constraints={"video": True, "audio": False},
-                            async_processing=True)
+    webrtc_streamer(key='example',
+                    video_frame_callback=video_frame_callback)
+                            # rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
+                            # media_stream_constraints={"video": True, "audio": False},
+                            # async_processing=True)
 
     #stream = cv2.cvtColor(results_array,cv2.COLOR_BGR2RGB)
-    frame_placeholder.image(ctx,channels="RGB")
+    #frame_placeholder.image(ctx,channels="RGB")
 
     #Showing the log as a graph after the webcam is closed
 
