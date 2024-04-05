@@ -3,3 +3,4 @@ torch
 cv2
 streamlit
 plotly
+mediapipe

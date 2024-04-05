@@ -1,12 +1,15 @@
+from streamlit_webrtc import webrtc_streamer
 import torch
 import numpy as np
 import cv2
+import av
 import datetime
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 import time
 import pandas as pd
+import mediapipe as mp
 
 @st.cache_resource
 def load_model():
@@ -40,6 +43,34 @@ def reset_page():
     times new roman">The data is cleared. Please return to Start◀️</h1>""", unsafe_allow_html=True)
 
 def main():
+    def video_frame_callback(frame):
+        '''Callback function for processing each video frame'''
+        img = frame.to_ndarray(format="brg24")
+        model = load_model()
+        results = model(img)
+        output_img = np.squeeze(results.render())
+
+        #Extracting detected labels and detected time
+        predictions = results.pred[0]
+        detected_labels = predictions[:,-1].cpu().numpy() #list of numbers
+        current_time = datetime.datetime.now()
+        date = current_time.strftime("%m.%d.%Y")
+        hour_minute = current_time.strftime("%H:%M:%S")
+        #Passing date infromation to session_state
+        st.session_state.date = date
+
+        #Taking logs of events
+        log = []
+        class_names = results.names #dictionary
+        detected_class_names = [class_names[label] for label in detected_labels]
+        if detected_class_names != []:
+            for word in detected_class_names:
+                log.append([word,hour_minute])
+                #Storing log as session state
+                st.session_state.log = log
+
+        return av.VideoFrame.from_ndarray(output_img,format="bgr24")
+
     page_bg_img = """
     <style>
     body {
@@ -49,23 +80,7 @@ def main():
     </style>
     """
 
-# <style>
-# [data-testid="stAppViewContainer"] > .main {{
-# background-image: url("main_background.jpg");
-# background-size: cover;
-# background-position: center center;
-# background-repeat: no-repeat;
-# background-attachment: local;
-# }}
-# [data-testid="stHeader"] {{
-# background: rgba(0,0,0,0);
-# }}
-# </style>
-
     st.markdown(page_bg_img, unsafe_allow_html=True)
-    cap = cv2.VideoCapture(0)
-    model = load_model()
-    log = []
 
     #Basic structure of the webpage
     frame_placeholder = st.empty()
@@ -84,44 +99,15 @@ def main():
     with col3:
         stop_button_pressed = st.button("Stop",key='stop')
 
-    #Livestream webcam using OpenCV
-    while cap.isOpened() and not stop_button_pressed:
-        ret, frame = cap.read()
-        if not ret:
-            st.write("The video capture has ended.")
-            break
-        #Applying finetuned YOLO model to webcam
-        results = model(frame)
+    #WebRTC streamling setup
+    ctx = webrtc_streamer(key='example',
+                            video_frame_callback=video_frame_callback,
+                            rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
+                            media_stream_constraints={"video": True, "audio": False},
+                            async_processing=True)
 
-        #Extracting detected labels and detected time
-        predictions = results.pred[0]
-        detected_labels = predictions[:,-1].cpu().numpy() #list of numbers
-        current_time = datetime.datetime.now()
-        date = current_time.strftime("%m.%d.%Y")
-        hour_minute = current_time.strftime("%H:%M:%S")
-        #Passing date infromation to session_state
-        st.session_state.date = date
-
-        #Taking logs of events
-        class_names = results.names #dictionary
-        detected_class_names = [class_names[label] for label in detected_labels]
-        if detected_class_names != []:
-            for word in detected_class_names:
-                log.append([word,hour_minute])
-                #Storing log as session state
-                st.session_state.log = log
-
-        #Displaying the webcam on the webpage
-        results_array = np.squeeze(results.render())
-        stream = cv2.cvtColor(results_array,cv2.COLOR_BGR2RGB)
-        frame_placeholder.image(stream,channels="RGB")
-
-        # Break the loop if the 'q' key is pressed or the user clicks the "Stop" button
-        if cv2.waitKey(1) & 0xFF == ord("q") or stop_button_pressed:
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
+    #stream = cv2.cvtColor(results_array,cv2.COLOR_BGR2RGB)
+    frame_placeholder.image(ctx,channels="RGB")
 
     #Showing the log as a graph after the webcam is closed
 
