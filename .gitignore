@@ -7,3 +7,4 @@ yolov3.weights
 yolov3.cfg
 yolov5/
 yolov5s.pt
+datasets
