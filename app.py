@@ -1,7 +1,6 @@
 from streamlit_webrtc import webrtc_streamer
 import torch
 import numpy as np
-import cv2
 import av
 import datetime
 import streamlit as st
@@ -9,7 +8,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 import time
 import pandas as pd
-import mediapipe as mp
 
 @st.cache_resource
 def load_model():
@@ -83,7 +81,6 @@ def main():
     st.markdown(page_bg_img, unsafe_allow_html=True)
 
     #Basic structure of the webpage
-    frame_placeholder = st.empty()
     log_placeholder = st.empty()
     col1,col2,col3,col4,col5 = st.columns(5)
 
@@ -105,9 +102,6 @@ def main():
                     rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
                     media_stream_constraints={"video": True, "audio": False},
                     async_processing=True)
-
-    #stream = cv2.cvtColor(results_array,cv2.COLOR_BGR2RGB)
-    #frame_placeholder.image(ctx,channels="RGB")
 
     #Showing the log as a graph after the webcam is closed
 
