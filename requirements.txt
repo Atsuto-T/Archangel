@@ -1,5 +1,6 @@
 #For app.py
 torch
+google-cloud-storage
 opencv-contrib-python
 opencv-python
 streamlit
