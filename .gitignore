@@ -8,3 +8,5 @@ yolov3.cfg
 yolov5/
 yolov5s.pt
 datasets
+.env
+.envrc

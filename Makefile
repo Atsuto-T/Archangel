@@ -7,6 +7,10 @@ start:
 install_requirements:
 	@pip install -r requirements.txt
 
-#HEROKU COMMANDS
+#Run Streamlit Cloud
 streamlit_main_ui:
 	-@streamlit run app.py --server.port 8503
+
+#Package Actions
+save_model:
+	python -c "from archangel.registry import save_model; save_model()"

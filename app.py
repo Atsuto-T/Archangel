@@ -2,19 +2,29 @@ from streamlit_webrtc import webrtc_streamer
 import torch
 import numpy as np
 import av
+import io
 import datetime
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
+from google.cloud import storage
 import time
 import pandas as pd
+from archangel.params import *
 
 @st.cache_resource
 def load_model():
+    print("Loading model from GCS...")
+    client = storage.Client()
+    bucket = client.bucket(BUCKET_NAME)
+    blob = bucket.blob("yolo_no1/models/exp8/weights/last.pt")
+    model_bytes = blob.download_as_string()
+    model = torch.load(io.BytesIO(model_bytes),map_location=torch.device('cpu'))
+
     with st.spinner('Processing...'):
         time.sleep(3)
         #Load fine-tuned YOLO detection model
-    model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5/runs/train/exp8/weights/last.pt', force_reload=True)
+    #model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5/runs/train/exp8/weights/last.pt', force_reload=True)
     return model
 
 def store_log(log,date):

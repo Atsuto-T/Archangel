@@ -1,16 +1,14 @@
 from google.cloud import storage
-
+from archangel.params import *
 
 def save_model():
-    if MODEL_TARGET == "gcs":
-        # 🎁 We give you this piece of code as a gift. Please read it carefully! Add a breakpoint if needed!
 
-        model_filename = model_path.split("/")[-1] # e.g. "20230208-161047.h5" for instance
-        client = storage.Client()
-        bucket = client.bucket(BUCKET_NAME)
-        blob = bucket.blob(f"models/{model_filename}")
-        blob.upload_from_filename(model_path)
+    model_filename = "exp8/weights/last.pt"
+    client = storage.Client()
+    bucket = client.bucket(BUCKET_NAME)
+    blob = bucket.blob(f"models/{model_filename}")
+    blob.upload_from_filename('yolov5/runs/train/exp8/weights/last.pt')
 
-        print("✅ Model saved to GCS")
+    print("Model saved to GCS")
 
     return None
